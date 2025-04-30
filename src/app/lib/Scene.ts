@@ -1,8 +1,10 @@
-import { Map, ArrayList, Collection, TreeMap, List } from "ts-collection";
+import { Point2d } from "ts-3dge";
 import { Entity } from "./Entity";
 
 export class Scene {
     public static defaultCollectionName: string = 'default';
+    private static tempCollectionname : string = 'temporaryItems';
+
     public constructor(){
 
     }
@@ -11,14 +13,57 @@ export class Scene {
         this.addEntityToCollection(ent, Scene.defaultCollectionName)
     }
 
+    public getDefaultEntities(){
+        let entities = this.m_EntityMap.get(Scene.defaultCollectionName);
+        if(entities == null){
+          entities = [];  
+        }
+        return entities;
+    }
+    
+    public getTempEntities(){
+        let entities = this.m_EntityMap.get(Scene.tempCollectionname);
+        if(entities == null){
+            entities = [];
+        }
+        return entities;
+    }
+    
     protected addEntityToCollection(ent: Entity, collection: string = 'default'): void {
         let list = this.m_EntityMap.get(collection);
         if(list == null){
-            list = new ArrayList<Entity>();
-            this.m_EntityMap.put(collection, list);
+            list = new Array<Entity>();
+            this.m_EntityMap.set(collection, list);
         }
-        list.add(ent);
+        list.push(ent);
     }
 
-    private m_EntityMap : Map<string, List<Entity> > = new TreeMap<string, ArrayList<Entity>>();
+    public addTempEntity(ent: Entity){
+        this.addEntityToCollection(ent, Scene.tempCollectionname);
+    }
+
+    public removeTempEntity(ent:Entity){
+        this.removeEntityFromCollection(ent, Scene.tempCollectionname);
+    }
+
+    public removeEntityFromCollection(ent: Entity, collection: string = 'default'){
+        let list = this.m_EntityMap.get(collection);
+        if(list === null){
+            return;
+        }
+        //TODOlist.remove(ent);
+    }
+
+    public getEntitiesOverPoint(pos: Point2d){
+        let entities : Entity[] = [];
+        let defaultEntities = this.m_EntityMap.get(Scene.defaultCollectionName);
+        defaultEntities.forEach(entity => {
+            if(entity.isCloseToPos(pos)){
+                entities.push(entity);
+            }
+        })
+        return entities;
+    }
+    
+    private m_EntityMap : Map<string, Array<Entity> > = new Map<string, Array<Entity>>();
 }

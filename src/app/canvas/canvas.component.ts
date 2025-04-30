@@ -3,6 +3,11 @@ import { Application } from '../lib/Application';
 import { Point2d } from 'ts-3dge';
 import { IEventHandler } from '../lib/IEventHandler';
 import { DefaultEventHandler } from '../lib/DefaultEventHandler';
+import { Scene } from '../lib/Scene';
+import { Line } from '../lib/Line';
+import { of } from 'rxjs';
+import { Entity } from '../lib/Entity';
+import { LineEventHandler } from '../lib/LineEventHandler';
 
 class Vector {
   x: number;
@@ -36,18 +41,42 @@ export class CanvasComponent implements AfterViewInit{
   /** Canvas 2d context */
   private ctx: CanvasRenderingContext2D;
   private defaultEventHandler : IEventHandler = null;
+  private eventHandler : IEventHandler = null;
+  private scene: Scene = new Scene();
 
   ngAfterViewInit() {
     this.canvas = this.canvasEl.nativeElement;
     let app = Application.getInstance();
     app.setCanvas(this.canvas);
     this.ctx = app.getRenderingContext();
+    Object.defineProperty(this.ctx, "dx", {value: this.dx, writable: true});
+    Object.defineProperty(this.ctx, "dy", {value: this.dy, writable: true});
+    Object.defineProperty(this.ctx, "s", {value: this.dy, writable: true});
+
     this.defaultEventHandler = new DefaultEventHandler(this);
-    this.defaultEventHandler.activate();
+    //this.setEventHandler(this.defaultEventHandler);
+
+    let lineEventHandler = new LineEventHandler(this);
+    this.setEventHandler(lineEventHandler);
+
+    //this.defaultEventHandler.activate();
+
+    let line = new Line(new Point2d(0, 0), new Point2d(100, 100));
+    this.scene.addEntity(line);
 
     this.redraw();
   }
 
+  public setEventHandler(handler: IEventHandler): void {
+    if(this.eventHandler != null){
+      this.eventHandler.deactivate();
+    }
+    this.eventHandler = handler;
+    if(this.eventHandler != null){
+      this.eventHandler.activate();
+    }
+  }
+  
   public getCanvas(): HTMLCanvasElement {
     return this.canvasEl.nativeElement;
   }
@@ -77,12 +106,17 @@ export class CanvasComponent implements AfterViewInit{
     this.s *= 1/s;
     this.dx *= 1/s;
     this.dy *= 1/s;
+    (this.ctx as any).s = this.s;
+    (this.ctx as any).dx = this.dx;
+    (this.ctx as any).dy = this.dy;
   }
 
   public translate(dx: number, dy: number){
     this.ctx.translate(dx, dy);
     this.dx -= dx;
     this.dy -= dy;
+    (this.ctx as any).dx = this.dx;
+    (this.ctx as any).dy = this.dy;
   }
 
 
@@ -91,20 +125,29 @@ export class CanvasComponent implements AfterViewInit{
     return this.transform(mouseOffset.x, mouseOffset.y);
   }
 
-
-  private drawCircle() {
-    this.ctx.beginPath();
-    this.ctx.arc(100, 100, 50, 0, 2 * Math.PI, false);
-    this.ctx.strokeStyle = 'teal';
-    this.ctx.lineWidth = 5;
-    this.ctx.fillStyle = 'white';
-    this.ctx.stroke();
-    this.ctx.fill();
+  public getScene(){
+    return this.scene;
   }
-  
+
+  private draw(scene: Scene){
+    let defaultEntities  = this.scene.getDefaultEntities();
+    defaultEntities.forEach(ent => {
+    this.ctx.lineWidth = this.s;
+      ent.draw(this.ctx)
+    });
+    // Draw temporary items
+    let tempEntities = this.scene.getTempEntities();
+    tempEntities.forEach(ent => {
+      this.ctx.lineWidth = this.s;
+      ent.draw(this.ctx)
+    });
+  }
+
   public redraw() {
     this.clearCanvas();
-    this.drawCircle();
+    this.draw(this.scene);
+
+
   }
 
   private clearCanvas() {
