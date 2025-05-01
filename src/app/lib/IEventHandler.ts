@@ -7,6 +7,8 @@ export abstract class IEventHandler {
     protected abstract onMouseWheel(e: WheelEvent): void;
     protected abstract onMouseClick(e: PointerEvent): void;
     
+    protected abstract onKeyUp(e: KeyboardEvent): void;
+    protected abstract finish(): void;
     public abstract activate(): void;
     public abstract deactivate(): void;
 }

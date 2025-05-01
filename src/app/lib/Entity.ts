@@ -3,7 +3,8 @@ import { Color } from "./Color";
 import { Collection } from "ts-collection";
 
 export abstract class Entity {
-    public static CLOSE_POINT_TOLERANCE = 0.001;
+    public static ENTITY_CLOSE_POINT_TOLERANCE = 1;
+    public static HOVERED_CLOSE_POINT_TOLERANCE = 15;
 
     public abstract getBoundingBox(): Bound2d;
     public getColor() : Color{
@@ -16,7 +17,7 @@ export abstract class Entity {
 
     public abstract draw(ctx: CanvasRenderingContext2D): void;
     public abstract explode(): Collection<Entity>;
-    public abstract getGripPoints(): Collection<Point2d>;
+    public abstract getGripPoints(): Point2d[];
     public abstract getSnapPoints(): Collection<Point2d>;
     public abstract moveGripPointsAt(index: number, offset: Vector2d) : void;
     public abstract isCloseToPos(pos: Point2d): boolean;
@@ -30,7 +31,7 @@ export abstract class Entity {
     public abstract intersectWith(ent: Entity): Collection<Point2d>;
     public abstract transformy(mat: Matrix2): void;
     
-    public select(selected: boolean): void {
+    public setSelected(selected: boolean): void {
         this.m_Selected = selected; 
     }
 
@@ -38,25 +39,31 @@ export abstract class Entity {
         return this.m_Selected;
     }
     
-    public setHover(hover: boolean){
+    public setHover(hover: boolean, hoveredGripIndex: number = -1){
         this.m_Hover = hover;
+        this.m_HoveredGripIndex = hoveredGripIndex;
     }
 
     public isHover(): boolean {
         return this.m_Hover;
     }
 
-    protected drawGripPoints(ctx: CanvasRenderingContext2D, gripPoints: Array<Point2d>){
-        ctx.fillStyle = 'orange';
-        ctx.beginPath();
-        gripPoints.forEach(gripPoint => {
+    protected drawGripPoints(ctx: CanvasRenderingContext2D){
+        let gripPoints = this.getGripPoints();
+        gripPoints.forEach((gripPoint, index) => {
+            ctx.fillStyle = 'orange';
+            if(index == this.m_HoveredGripIndex){
+                ctx.fillStyle = 'red';
+            }
+            ctx.beginPath();
             ctx.arc(gripPoint.x, gripPoint.y, 5*(ctx as any).s, 0, 2*Math.PI);
+            ctx.fill();
         })
-        ctx.fill();
     }
 
     protected m_Visible: boolean;
     protected m_Color: Color;
     protected m_Selected: boolean;
     protected m_Hover: boolean;
+    protected m_HoveredGripIndex: number = -1;
 }

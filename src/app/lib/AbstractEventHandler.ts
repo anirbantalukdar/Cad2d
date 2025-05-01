@@ -12,6 +12,7 @@ export abstract class AbstractEventHandler extends IEventHandler {
     protected mouseMove$ : Observable<MouseEvent>;
     protected mouseWheel$: Observable<WheelEvent>;
     protected mouseClick$: Observable<PointerEvent>;
+    protected keyUp$ : Observable<KeyboardEvent>;
 
     protected finish$ = new Subject<void>();
 
@@ -29,6 +30,10 @@ export abstract class AbstractEventHandler extends IEventHandler {
         this.mouseMove$ = (fromEvent(canvasHtml, 'mousemove') as Observable<MouseEvent>).pipe(takeUntil(this.finish$));
         this.mouseWheel$ = (fromEvent(canvasHtml, 'mousewheel') as Observable<WheelEvent>).pipe(takeUntil(this.finish$));
         this.mouseClick$ = (fromEvent(canvasHtml, 'click') as Observable<PointerEvent>).pipe(takeUntil(this.finish$));
+        document.addEventListener('keyup', (e: KeyboardEvent) => {
+            this.onKeyUp(e);
+        })
+        //this.keyUp$ = (fromEvent(canvasHtml, 'keyup') as Observable<KeyboardEvent>).pipe(takeUntil(this.finish$));
     }
 
     protected override onMouseOut(e: MouseEvent): void {
@@ -48,6 +53,12 @@ export abstract class AbstractEventHandler extends IEventHandler {
         if(e.button === 1){
             this.dragStartPt = this.canvas.toPoint(e);
         }
+    }
+
+    protected override onKeyUp(e: KeyboardEvent): void {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Keuup event');
     }
 
     protected override onMouseMove(e: MouseEvent): void {
@@ -121,8 +132,16 @@ export abstract class AbstractEventHandler extends IEventHandler {
         this.mouseWheel$.subscribe((e: WheelEvent) => {
             this.onMouseWheel(e);
         });
+
+        //this.keyUp$.subscribe((e: KeyboardEvent) => {
+         //   this.onKeyUp(e);
+        //});
     }
 
+    public override finish(): void {
+    
+    }
+    
     public override deactivate(){
         this.finish$.next();
     }

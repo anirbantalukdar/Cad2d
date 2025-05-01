@@ -27,9 +27,9 @@ class Vector {
   styleUrl: './canvas.component.css'
 })
 export class CanvasComponent implements AfterViewInit{
-  protected dx : number = 0;
-  protected dy: number = 0;
-  protected s: number = 1;
+  public dx : number = 0;
+  public dy: number = 0;
+  public s: number = 1;
 
   protected dragStart : Vector = null;
   protected dragging: boolean = false;
@@ -51,7 +51,7 @@ export class CanvasComponent implements AfterViewInit{
     this.ctx = app.getRenderingContext();
     Object.defineProperty(this.ctx, "dx", {value: this.dx, writable: true});
     Object.defineProperty(this.ctx, "dy", {value: this.dy, writable: true});
-    Object.defineProperty(this.ctx, "s", {value: this.dy, writable: true});
+    Object.defineProperty(this.ctx, "s", {value: this.s, writable: true});
 
     this.defaultEventHandler = new DefaultEventHandler(this);
     //this.setEventHandler(this.defaultEventHandler);
@@ -59,12 +59,15 @@ export class CanvasComponent implements AfterViewInit{
     let lineEventHandler = new LineEventHandler(this);
     this.setEventHandler(lineEventHandler);
 
-    //this.defaultEventHandler.activate();
-
     let line = new Line(new Point2d(0, 0), new Point2d(100, 100));
+    line.setSelected(true);
     this.scene.addEntity(line);
 
     this.redraw();
+  }
+
+  public setDefaultEventHandler(){
+    this.setEventHandler(this.defaultEventHandler);
   }
 
   public setEventHandler(handler: IEventHandler): void {
@@ -129,7 +132,7 @@ export class CanvasComponent implements AfterViewInit{
     return this.scene;
   }
 
-  private draw(scene: Scene){
+  private draw(){
     let defaultEntities  = this.scene.getDefaultEntities();
     defaultEntities.forEach(ent => {
     this.ctx.lineWidth = this.s;
@@ -145,9 +148,7 @@ export class CanvasComponent implements AfterViewInit{
 
   public redraw() {
     this.clearCanvas();
-    this.draw(this.scene);
-
-
+    this.draw();
   }
 
   private clearCanvas() {

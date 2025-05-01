@@ -50,4 +50,20 @@ export class LineEventHandler extends AbstractEventHandler {
             this.canvas.redraw();         
         }
     }
+
+    public override finish(): void {
+        if(this.line !== null){
+            let scene = this.canvas.getScene();
+            scene.removeTempEntity(this.line);
+            this.canvas.redraw();
+            this.line = null;
+        }
+    }
+    
+    protected override onKeyUp(e: KeyboardEvent): void {
+        super.onKeyUp(e);
+        this.finish();
+        this.canvas.setDefaultEventHandler();
+    }
+
 }

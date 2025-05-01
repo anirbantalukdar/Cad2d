@@ -25,7 +25,7 @@ export class Line extends Entity {
 
         this.m_Selected = true;
         if(this.m_Selected){
-            this.drawGripPoints(ctx, [this.m_startPoint, this.m_endPoint]);
+            this.drawGripPoints(ctx);
         }
         ctx.strokeStyle = oldStroke;
     }
@@ -35,15 +35,17 @@ export class Line extends Entity {
     }
 
     public override isCloseToPos(pos: Point2d): boolean {
-        return (this.m_startPoint.distanceTo(pos) + this.m_endPoint.distanceTo(pos) - this.length()) < Entity.CLOSE_POINT_TOLERANCE
+        return (this.m_startPoint.distanceTo(pos) + this.m_endPoint.distanceTo(pos) - this.length()) < Entity.ENTITY_CLOSE_POINT_TOLERANCE;
     }
 
     public override explode(): Collection<Entity> {
         throw new Error("Method not implemented.");
     }
-    public override getGripPoints(): Collection<Point2d> {
-        throw new Error("Method not implemented.");
+    
+    public override getGripPoints(): Point2d[] {
+        return [this.m_startPoint, this.m_endPoint];
     }
+
     public override getSnapPoints(): Collection<Point2d> {
         throw new Error("Method not implemented.");
     }
@@ -57,12 +59,6 @@ export class Line extends Entity {
         throw new Error("Method not implemented.");
     }
     public override transformy(mat: Matrix2): void {
-        throw new Error("Method not implemented.");
-    }
-    public override select(): void {
-        throw new Error("Method not implemented.");
-    }
-    public override isSelected(): boolean {
         throw new Error("Method not implemented.");
     }
     

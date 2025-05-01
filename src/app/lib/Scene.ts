@@ -51,7 +51,8 @@ export class Scene {
         if(list === null){
             return;
         }
-        //TODOlist.remove(ent);
+        let index = list.indexOf(ent);
+        list.splice(index, 1);
     }
 
     public getEntitiesOverPoint(pos: Point2d){
@@ -65,5 +66,16 @@ export class Scene {
         return entities;
     }
     
+    public getSelectedEntities(): Entity[]{
+        let defaultEntities = this.m_EntityMap.get(Scene.defaultCollectionName);
+        let result : Entity[] = []
+        defaultEntities.forEach(entity => {
+            if(entity.isSelected()){
+                result.push(entity)
+            }
+        });
+        return result;
+    }
+
     private m_EntityMap : Map<string, Array<Entity> > = new Map<string, Array<Entity>>();
 }
