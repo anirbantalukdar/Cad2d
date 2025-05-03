@@ -21,7 +21,7 @@ export class VertexDictionary {
 
     }
 
-    public addVertex(pos: Point2d, entity: Entity, ref: number){
+    public addVertex(pos: Point2d, entity: Entity, ref: number) : number{
         let index = this.getVertexIndex(pos);
         if(index !== -1){
             let vertexInfo = this.m_VertexInfoArray[index];
@@ -29,10 +29,11 @@ export class VertexDictionary {
             for(let i=0; i<entityRefArray.length; i++){
                 if(entityRefArray[i].m_Entity == entity){
                     console.log('Entity already exist');
-                    return;
+                    return -1;
                 }
             }
             entityRefArray.push(new EntityRef(entity, ref));
+            return index;
         }else {
             let vertexInfo = new VertexInfo();
             vertexInfo.m_Position = pos;
@@ -40,29 +41,33 @@ export class VertexDictionary {
             for(let i=0; i<this.m_VertexInfoArray.length; i++){
                 if(this.m_VertexInfoArray[i] == null){
                     this.m_VertexInfoArray[i] = vertexInfo;
-                    return;
+                    return i;
                 }
             }
             this.m_VertexInfoArray.push(vertexInfo);
+            return this.m_VertexInfoArray.length -1;
         }
     }
 
-    public removeEntityRef(entity: Entity){
-        for(let i=0; i<this.m_VertexInfoArray.length; i++){
-            let vertexInfo = this.m_VertexInfoArray[i];
-            let found = false;
-            do {
-                for(let j=0; j<vertexInfo.m_EntityRefArray.length; j++){
-                    if(entity == vertexInfo.m_EntityRefArray[j].m_Entity){
-                        vertexInfo.m_EntityRefArray.splice(j, 1);
-                        found = true;
-                    }
-                }                
-            }while(!found);
-            if(vertexInfo.m_EntityRefArray.length == 0){
-                this.m_VertexInfoArray[i] = null;
-            }
+    public removeEntityRef(vertex:Point2d | number, entity: Entity, ref: number){
+        if(vertex instanceof Point2d){
+            vertex = this.getVertexIndex(vertex);    
         }
+        let vertexIndex:number = vertex;
+        if(vertexIndex < 0 || vertexIndex >= this.m_VertexInfoArray.length){
+            return;
+        }
+        let found = false;
+        let vertexInfo = this.m_VertexInfoArray[vertexIndex];
+        do {
+            for(let i=0; i<vertexInfo.m_EntityRefArray.length; i++){
+                let entityRef = vertexInfo.m_EntityRefArray[i];
+                if(entity == entityRef.m_Entity && ref === entityRef.m_Ref){
+                    vertexInfo.m_EntityRefArray.splice(i, 1);
+                    found = true;
+                }
+            }                
+        }while(!found);
     }
 
     public getVertexIndex(pos: Point2d){
@@ -77,6 +82,14 @@ export class VertexDictionary {
         return -1;
     }
 
+    public getVertex(index: number){
+        return this.m_VertexInfoArray[index];
+    }
+
+    public getVertexPosition(index: number){
+        return this.getVertex(index).m_Position;
+    }
+    
     public static getInstance(): VertexDictionary {
         return VertexDictionary.INSTANCE;
     }

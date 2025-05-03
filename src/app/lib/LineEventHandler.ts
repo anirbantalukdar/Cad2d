@@ -2,11 +2,12 @@ import { Point2d } from "ts-3dge";
 import { AbstractEventHandler } from "./AbstractEventHandler";
 import { CanvasComponent } from "../canvas/canvas.component";
 import { Line } from "./Line";
+import { TemporaryLine } from "./TemporaryLine";
 
 export class LineEventHandler extends AbstractEventHandler {
     startPt: Point2d = null;
     endPt: Point2d = null;
-    line: Line = new Line();
+    m_TempLine: Line = new Line();
 
     public constructor(canvas: CanvasComponent){
         super(canvas);
@@ -25,7 +26,7 @@ export class LineEventHandler extends AbstractEventHandler {
         let pos = this.canvas.toPoint(e);
         let scene = this.canvas.getScene();
         if(this.startPt !== null){
-            this.line.setEndPoint(pos);
+            this.m_TempLine.setEndPoint(pos);
             this.canvas.redraw();
         }
     }
@@ -39,24 +40,24 @@ export class LineEventHandler extends AbstractEventHandler {
         let scene = this.canvas.getScene();
         if(this.startPt == null){
             this.startPt = pos;
-            this.line = new Line(this.startPt, this.startPt);
-            scene.addTempEntity(this.line);
+            this.m_TempLine = new TemporaryLine(this.startPt, this.startPt);
+            scene.addTempEntity(this.m_TempLine);
         }else {
-            this.line.setEndPoint(pos);
-            scene.removeTempEntity(this.line);
-            scene.addEntity(this.line);
-            this.line = new Line(pos, pos);
-            scene.addTempEntity(this.line);   
+            let line = new Line(this.m_TempLine.getStartPoint(), this.m_TempLine.getEndPoint());
+            scene.addEntity(line);
+
+            this.m_TempLine.setStartPoint(pos);
+
             this.canvas.redraw();         
         }
     }
 
     public override finish(): void {
-        if(this.line !== null){
+        if(this.m_TempLine !== null){
             let scene = this.canvas.getScene();
-            scene.removeTempEntity(this.line);
+            scene.removeTempEntity(this.m_TempLine);
             this.canvas.redraw();
-            this.line = null;
+            this.m_TempLine = null;
         }
     }
     

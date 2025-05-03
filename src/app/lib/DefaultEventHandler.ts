@@ -23,7 +23,6 @@ export class DefaultEventHandler extends AbstractEventHandler {
         let pos = this.canvas.toPoint(e);
         let scene = this.canvas.getScene();
         let selectedEntities = scene.getSelectedEntities();
-        this.m_HoveredEntities = scene.getEntitiesOverPoint(pos);
         selectedEntities.forEach(selectedEntity => {
             let gripPoints = selectedEntity.getGripPoints();
             gripPoints.forEach((gripPoint, index) => {
@@ -34,6 +33,7 @@ export class DefaultEventHandler extends AbstractEventHandler {
             });
         })
         
+        this.m_HoveredEntities = scene.getEntitiesOverPoint(pos);
         this.m_HoveredEntities.forEach(entity => {
             let gripPoints = entity.getGripPoints();
             let hoveredGripIndex = -1;

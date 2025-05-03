@@ -1,6 +1,7 @@
 import { Bound2d, Matrix2, Point2d, Vector2d } from "ts-3dge";
 import { Color } from "./Color";
 import { Collection } from "ts-collection";
+import { GripPoint } from "./GripPoint";
 
 export abstract class Entity {
     public static ENTITY_CLOSE_POINT_TOLERANCE = 1;
@@ -17,9 +18,8 @@ export abstract class Entity {
 
     public abstract draw(ctx: CanvasRenderingContext2D): void;
     public abstract explode(): Collection<Entity>;
-    public abstract getGripPoints(): Point2d[];
+    public abstract getGripPoints(): GripPoint[];
     public abstract getSnapPoints(): Collection<Point2d>;
-    public abstract moveGripPointsAt(index: number, offset: Vector2d) : void;
     public abstract isCloseToPos(pos: Point2d): boolean;
 
     public  setVisible(visible: boolean): void{
@@ -51,15 +51,18 @@ export abstract class Entity {
     protected drawGripPoints(ctx: CanvasRenderingContext2D){
         let gripPoints = this.getGripPoints();
         gripPoints.forEach((gripPoint, index) => {
+            let pos = gripPoint.getPosition();
             ctx.fillStyle = 'orange';
             if(index == this.m_HoveredGripIndex){
                 ctx.fillStyle = 'red';
             }
             ctx.beginPath();
-            ctx.arc(gripPoint.x, gripPoint.y, 5*(ctx as any).s, 0, 2*Math.PI);
+            ctx.arc(pos.x, pos.y, 5*(ctx as any).s, 0, 2*Math.PI);
             ctx.fill();
         })
     }
+
+    public abstract getGripPos(index: number) : Point2d;
 
     protected m_Visible: boolean;
     protected m_Color: Color;
