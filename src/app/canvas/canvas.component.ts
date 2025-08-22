@@ -8,6 +8,7 @@ import { Line } from '../lib/Line';
 import { of } from 'rxjs';
 import { Entity } from '../lib/Entity';
 import { LineEventHandler } from '../lib/LineEventHandler';
+import { VertexDictionary } from '../lib/VertexDictionary';
 
 class Vector {
   x: number;
@@ -54,10 +55,10 @@ export class CanvasComponent implements AfterViewInit{
     Object.defineProperty(this.ctx, "s", {value: this.s, writable: true});
 
     this.defaultEventHandler = new DefaultEventHandler(this);
-    //this.setEventHandler(this.defaultEventHandler);
+    this.setEventHandler(this.defaultEventHandler);
 
     let lineEventHandler = new LineEventHandler(this);
-    this.setEventHandler(lineEventHandler);
+    //this.setEventHandler(lineEventHandler);
 
     let line = new Line(new Point2d(0, 0), new Point2d(100, 100));
     line.setSelected(true);
@@ -138,6 +139,20 @@ export class CanvasComponent implements AfterViewInit{
     this.ctx.lineWidth = this.s;
       ent.draw(this.ctx)
     });
+    // get vertex grip points.
+    let selectedEntities = this.scene.getSelectedEntities();
+    selectedEntities.forEach((selectedEntity) => {
+      let absGripPoints = selectedEntity.getAbsoluteGripPoints();
+      absGripPoints.forEach((absGripPoint) => {
+        absGripPoint.draw(this.ctx);
+      });
+
+      let vDict = VertexDictionary.getInstance();
+      let indexedGripPoints = vDict.getIndexedGripPoints();
+      indexedGripPoints.forEach((indexedGripPoint) => {
+        indexedGripPoint.draw(this.ctx);
+      });
+    })
     // Draw temporary items
     let tempEntities = this.scene.getTempEntities();
     tempEntities.forEach(ent => {

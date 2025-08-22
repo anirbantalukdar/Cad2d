@@ -2,6 +2,9 @@ import { Point2d } from "ts-3dge";
 import { AbstractEventHandler } from "./AbstractEventHandler";
 import { CanvasComponent } from "../canvas/canvas.component";
 import { Entity } from "./Entity";
+import { GripPoint } from "./GripPoint";
+import { VertexDictionary } from "./VertexDictionary";
+import { TemporaryLine } from "./TemporaryLine";
 
 export class DefaultEventHandler extends AbstractEventHandler {
 
@@ -11,40 +14,81 @@ export class DefaultEventHandler extends AbstractEventHandler {
 
     protected override onMouseDown(e: MouseEvent){
         super.onMouseDown(e);
+        if(this.m_HoveredGripPoint != null){
+            this.m_TempLine = new TemporaryLine(this.m_HoveredGripPoint.getPosition(), this.m_HoveredGripPoint.getPosition());
+            let scene = this.canvas.getScene();
+            scene.addTempEntity(this.m_TempLine);
+            this.m_LockedGripPoint = this.m_HoveredGripPoint;
+            this.m_HoveredGripPoint = null;
+        }
     }
 
     protected override onMouseUp(e: MouseEvent){
         super.onMouseUp(e);
+        let pos = this.canvas.toPoint(e);
+        if(this.m_LockedGripPoint != null){
+            if(this.m_TempLine != null){
+                let scene = this.canvas.getScene();
+                scene.removeTempEntity(this.m_TempLine);
+                this.m_LockedGripPoint.moveGripPointTo(pos);
+                this.m_TempLine = null;
+            }
+            this.m_LockedGripPoint = null;
+        }
     }
     
+    protected override onMouseClick(e: PointerEvent): void {
+        super.onMouseClick(e);
+        let scene = this.canvas.getScene();
+        if(this.m_HoveredGripPoint == null && this.m_HoveredEntity == null){
+            scene.clearSelection();
+            this.canvas.redraw();
+            return;
+        }
+
+        if(!e.ctrlKey){
+            scene.clearSelection();
+        }
+        if(this.m_HoveredEntity != null){
+            this.m_HoveredEntity.setSelected(true);
+        }
+        this.canvas.redraw();
+        
+    }
     protected override onMouseMove(e: MouseEvent) {
         super.onMouseMove(e);
-        this.clearHover();
         let pos = this.canvas.toPoint(e);
+        if(this.m_LockedGripPoint != null){
+            if(this.m_TempLine != null){
+                this.m_TempLine.setEndPoint(pos);
+            }
+            this.canvas.redraw();
+            return;
+        }
         let scene = this.canvas.getScene();
+        this.clearHover();
+
+        let entitiesOverPos = scene.getEntitiesOverPoint(pos);
+        if(entitiesOverPos.length != 0){
+            this.m_HoveredEntity = entitiesOverPos[0];
+            this.m_HoveredEntity.setHover(true);
+        }
+
         let selectedEntities = scene.getSelectedEntities();
+        console.log(selectedEntities);
         selectedEntities.forEach(selectedEntity => {
             let gripPoints = selectedEntity.getGripPoints();
-            gripPoints.forEach((gripPoint, index) => {
-                if(gripPoint.distanceTo(pos)/this.canvas.s < Entity.HOVERED_CLOSE_POINT_TOLERANCE){
-                    selectedEntity.setHover(true, index);
-                    this.m_HoveredEntities.push(selectedEntity);
+            for(let i=0; i<gripPoints.length; i++){
+                let gripPoint = gripPoints[i];
+                if((gripPoint.distanceTo(pos)/this.canvas.s) < Entity.HOVERED_CLOSE_POINT_TOLERANCE){
+                    selectedEntity.setHover(true, gripPoint.getRefNo(selectedEntity));
+                    this.m_HoveredEntity = selectedEntity;
+                    this.m_HoveredGripPoint = gripPoint;
+                    break;
                 }
-            });
+            };
         })
-        
-        this.m_HoveredEntities = scene.getEntitiesOverPoint(pos);
-        this.m_HoveredEntities.forEach(entity => {
-            let gripPoints = entity.getGripPoints();
-            let hoveredGripIndex = -1;
-                gripPoints.forEach((gripPoint, index) => {
-                    if(gripPoint.distanceTo(pos)/this.canvas.s < Entity.HOVERED_CLOSE_POINT_TOLERANCE){
-                        hoveredGripIndex = index;
-                        // break should be applied here. syntax error issue.
-                    }
-                });
-                entity.setHover(true, hoveredGripIndex);
-        });
+
         this.canvas.redraw();
     }
 
@@ -53,10 +97,17 @@ export class DefaultEventHandler extends AbstractEventHandler {
     }
     
     protected clearHover(){
-        this.m_HoveredEntities.forEach(entity => {
-            entity.setHover(false);
+        let scene = this.canvas.getScene();
+        let defaultEntities = scene.getDefaultEntities();
+        defaultEntities.forEach(entity => {
+            entity.setHover(false, -1);
         })
-        this.m_HoveredEntities = [];
+        this.m_HoveredEntity = null;
+        this.m_HoveredGripPoint = null;
     }
-    protected m_HoveredEntities: Entity[] = [];
+
+    protected m_HoveredEntity: Entity = null;
+    protected m_HoveredGripPoint: GripPoint = null;
+    protected m_LockedGripPoint: GripPoint = null;
+    protected m_TempLine : TemporaryLine = null;
 }

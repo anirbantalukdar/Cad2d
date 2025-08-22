@@ -29,7 +29,7 @@ export abstract class Entity {
         return this.m_Visible;
     }
     public abstract intersectWith(ent: Entity): Collection<Point2d>;
-    public abstract transformy(mat: Matrix2): void;
+    public abstract transformBy(mat: Matrix2): void;
     
     public setSelected(selected: boolean): void {
         this.m_Selected = selected; 
@@ -44,24 +44,20 @@ export abstract class Entity {
         this.m_HoveredGripIndex = hoveredGripIndex;
     }
 
+    public hoveredGripIndex(): number {
+        return this.m_HoveredGripIndex;
+    }
+
     public isHover(): boolean {
         return this.m_Hover;
     }
 
-    protected drawGripPoints(ctx: CanvasRenderingContext2D){
-        let gripPoints = this.getGripPoints();
-        gripPoints.forEach((gripPoint, index) => {
-            let pos = gripPoint.getPosition();
-            ctx.fillStyle = 'orange';
-            if(index == this.m_HoveredGripIndex){
-                ctx.fillStyle = 'red';
-            }
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 5*(ctx as any).s, 0, 2*Math.PI);
-            ctx.fill();
-        })
+    public getHoveredGripIndex(){
+        return this.m_HoveredGripIndex;
     }
-
+    
+    public abstract getAbsoluteGripPoints(): GripPoint[];
+    
     public abstract getGripPos(index: number) : Point2d;
 
     protected m_Visible: boolean;

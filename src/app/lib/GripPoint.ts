@@ -2,21 +2,28 @@ import { Point2d } from "ts-3dge";
 import { Entity } from "./Entity";
 
 export abstract class GripPoint {
-    public constructor(entity: Entity, gripRef: number){
-        this.m_Entity = entity;
-        this.m_GripRef = gripRef;
+    public constructor(){
     }
 
     public distanceTo(pos: Point2d): number{
         return this.getPosition().distanceTo(pos);
     }
 
-    public abstract moveGripPointTo(pos: Point2d): void;
-
-    public getPosition(): Point2d {
-        return this.m_Entity.getGripPos(this.m_GripRef);
+    public draw(ctx: CanvasRenderingContext2D){
+        let pos = this.getPosition();
+        ctx.fillStyle = 'orange';
+        if(this.isHovered()){
+            ctx.fillStyle = 'red';
+        }
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 5*(ctx as any).s, 0, 2*Math.PI);
+        ctx.fill();
     }
-    
-    protected m_Entity: Entity;
-    protected m_GripRef: number;
+
+    public abstract getRefNo(entity: Entity): number;
+    public abstract moveGripPointTo(pos: Point2d): void;
+    public abstract isHovered() : boolean;
+    public abstract isVisible(): boolean;
+    public abstract isLocked(): boolean;
+    public abstract getPosition(): Point2d;
 }

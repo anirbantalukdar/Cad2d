@@ -58,7 +58,6 @@ export abstract class AbstractEventHandler extends IEventHandler {
     protected override onKeyUp(e: KeyboardEvent): void {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Keuup event');
     }
 
     protected override onMouseMove(e: MouseEvent): void {

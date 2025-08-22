@@ -52,7 +52,8 @@ export class Scene {
             return;
         }
         let index = list.indexOf(ent);
-        list.splice(index, 1);
+        if(index != -1)
+            list.splice(index, 1);
     }
 
     public getEntitiesOverPoint(pos: Point2d){
@@ -75,6 +76,17 @@ export class Scene {
             }
         });
         return result;
+    }
+
+    public getSelectableEntities(){
+        return this.getDefaultEntities();
+    }
+
+    public clearSelection(){
+        let selectableEntities = this.getSelectableEntities();
+        selectableEntities.forEach(entity => {
+            entity.setSelected(false);
+        })
     }
 
     private m_EntityMap : Map<string, Array<Entity> > = new Map<string, Array<Entity>>();
